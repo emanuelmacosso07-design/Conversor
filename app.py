@@ -1,46 +1,72 @@
 import streamlit as st
 import requests
 
-st.set_page_config(page_title="Conversor Kwanza Pro", page_icon="🇦🇴")
+# 1. Configuração da Página
+st.set_page_config(page_title="Kwanza Pro - EMANUEL MACOSSO", page_icon="🇦🇴")
 
-# --- FUNÇÃO PARA BUSCAR CÂMBIO EM TEMPO REAL ---
+# 2. Estilo Visual (Cores Azul e Amarela)
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #003366; /* Fundo Azul Marinho */
+    }
+    h1, h2, h3, p, span, label {
+        color: #FFCC00 !important; /* Texto em Amarelo Ouro */
+    }
+    .stButton>button {
+        background-color: #FFCC00;
+        color: #003366;
+        border-radius: 10px;
+        font-weight: bold;
+    }
+    .stNumberInput input {
+        color: #003366 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- IDENTIFICAÇÃO DO DONO ---
+col_nome, col_vazio = st.columns([2, 1])
+with col_nome:
+    st.write(f"👤 **DESENVOLVEDOR: EMANUEL MACOSSO**")
+
+# --- FUNÇÃO DE CÂMBIO ---
 def buscar_cambio():
-    url = "https://open.er-api.com" # Base no Kwanza
+    url = "https://open.er-api.com"
     try:
         response = requests.get(url)
         dados = response.json()
-        # Pegamos o inverso (1 / valor) para saber quanto 1 USD ou EUR vale em AOA
-        taxas = {
-            "USD": 1 / dados['rates']['USD'],
-            "EUR": 1 / dados['rates']['EUR']
-        }
-        return taxas
+        return {"USD": 1 / dados['rates']['USD'], "EUR": 1 / dados['rates']['EUR']}
     except:
-        return {"USD": 914.0, "EUR": 980.0} # Valores de reserva caso a internet falhe
+        return {"USD": 914.0, "EUR": 980.0}
 
 cambio = buscar_cambio()
 
-st.title("🇦🇴 Conversor de Moedas (AOA)")
-st.write("Câmbio atualizado em tempo real via API")
+# --- TÍTULO COM BANDEIRA ---
+st.title("🇦🇴 Conversor de Moedas Pro")
+st.write("---")
 
-# 1. Escolha da Moeda
-moeda_origem = st.selectbox("Selecione a moeda que você tem:", ["Dólar (USD)", "Euro (EUR)"])
+# --- SEÇÃO DE CONVERSÃO ---
+moeda = st.selectbox(
+    "Escolha a moeda que deseja converter:",
+    ["🇺🇸 Dólar (USD)", "🇪🇺 Euro (EUR)"]
+)
 
-# 2. Entrada do Valor
-sigla = "USD" if "Dólar" in moeda_origem else "EUR"
-simbolo = "$" if sigla == "USD" else "€"
-valor_estrangeiro = st.number_input(f"Digite o valor em {moeda_origem}:", min_value=0.0, value=1.0)
+sigla = "USD" if "Dólar" in moeda else "EUR"
+bandeira = "🇺🇸" if sigla == "USD" else "🇪🇺"
 
-# 3. Cálculo
+valor = st.number_input(f"Valor em {moeda}:", min_value=0.0, value=1.0)
+
+# Cálculos
 cotacao = cambio[sigla]
-valor_kwanza = valor_estrangeiro * cotacao
+total_kwanza = valor * cotacao
 
-# 4. Resultado
-st.metric(label=f"Cotação 1 {sigla}", value=f"{cotacao:.2f} Kz")
-st.success(f"{simbolo}{valor_estrangeiro:.2f} equivalem a **{valor_kwanza:,.2f} Kz**")
+# Exibição do Resultado
+st.metric(label=f"Cotação Atual {bandeira}", value=f"{cotacao:.2f} Kz")
+st.header(f"Total: {total_kwanza:,.2f} Kz")
 
-st.divider()
-if st.button("🔄 Atualizar Câmbio"):
+st.write("---")
+if st.button("🔄 ATUALIZAR CÂMBIO AGORA"):
     st.rerun()
 
-st.caption("Criado por um desenvolvedor Python no S21 🚀")
+st.caption("© 2024 | Criado por Emanuel Macosso no Samsung S21 🚀")
