@@ -1,72 +1,70 @@
 import streamlit as st
-import requests
 
-# 1. Configuração da Página
-st.set_page_config(page_title="Kwanza Pro - EMANUEL MACOSSO", page_icon="🇦🇴")
+# 1. Configuração da Página com o novo título solicitado
+st.set_page_config(
+    page_title="Conversor PRO de moedas e Temperaturas", 
+    page_icon="💰",
+    layout="centered"
+)
 
-# 2. Estilo Visual (Cores Azul e Amarela)
+# 2. CSS Customizado para Números Amarelos e Rodapé Fixo
 st.markdown("""
     <style>
-    .stApp {
-        background-color: #003366; /* Fundo Azul Marinho */
+    /* Força cor amarela em inputs, sliders e textos importantes */
+    input, .stNumberInput div div input, .stSlider div div, label, .stMarkdown p {
+        color: #FFD700 !important;
     }
-    h1, h2, h3, p, span, label {
-        color: #FFCC00 !important; /* Texto em Amarelo Ouro */
-    }
-    .stButton>button {
-        background-color: #FFCC00;
-        color: #003366;
-        border-radius: 10px;
+    .resultado-grande {
+        font-size: 28px !important;
         font-weight: bold;
+        color: #FFD700;
+        margin-top: 10px;
     }
-    .stNumberInput input {
-        color: #003366 !important;
+    /* Estilo para o rodapé com seus dados */
+    .footer {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: transparent;
+        color: white;
+        text-align: left;
+        padding: 10px;
+        font-size: 12px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- IDENTIFICAÇÃO DO DONO ---
-col_nome, col_vazio = st.columns([2, 1])
-with col_nome:
-    st.write(f"👤 **DESENVOLVEDOR: EMANUEL MACOSSO**")
+st.title("🇦🇴 Conversor PRO")
+st.write(f"**DESENVOLVEDOR:** EMANUEL MACOSSO")
 
-# --- FUNÇÃO DE CÂMBIO ---
-def buscar_cambio():
-    url = "https://open.er-api.com"
-    try:
-        response = requests.get(url)
-        dados = response.json()
-        return {"USD": 1 / dados['rates']['USD'], "EUR": 1 / dados['rates']['EUR']}
-    except:
-        return {"USD": 914.0, "EUR": 980.0}
+# --- NAVEGAÇÃO ---
+aba = st.tabs(["Moedas 💵", "Temperaturas 🌡️"])
 
-cambio = buscar_cambio()
+with aba[0]:
+    st.subheader("Conversão de Moedas")
+    moeda = st.selectbox("Escolha a moeda:", ["Dólar (USD)", "Euro (EUR)"])
+    valor = st.number_input("Valor:", min_value=0.0, value=1.0, step=1.0, key="moeda_input")
+    
+    cotacao = 914.00 if "Dólar" in moeda else 1000.00
+    total = valor * cotacao
+    
+    st.write(f"Cotação Atual: {cotacao} Kz")
+    st.markdown(f'<p class="resultado-grande">Total: {total:,.2f} Kz</p>', unsafe_allow_html=True)
 
-# --- TÍTULO COM BANDEIRA ---
-st.title("🇦🇴 Conversor de Moedas Pro")
-st.write("---")
+with aba[1]:
+    st.subheader("Conversão Celsius para Fahrenheit")
+    celsius = st.number_input("Graus Celsius (°C):", value=25.0, step=0.5, key="temp_input")
+    
+    fahrenheit = (celsius * 9/5) + 32
+    
+    st.markdown(f'<p class="resultado-grande">{celsius}°C = {fahrenheit:.1f}°F</p>', unsafe_allow_html=True)
 
-# --- SEÇÃO DE CONVERSÃO ---
-moeda = st.selectbox(
-    "Escolha a moeda que deseja converter:",
-    ["🇺🇸 Dólar (USD)", "🇪🇺 Euro (EUR)"]
-)
-
-sigla = "USD" if "Dólar" in moeda else "EUR"
-bandeira = "🇺🇸" if sigla == "USD" else "🇪🇺"
-
-valor = st.number_input(f"Valor em {moeda}:", min_value=0.0, value=1.0)
-
-# Cálculos
-cotacao = cambio[sigla]
-total_kwanza = valor * cotacao
-
-# Exibição do Resultado
-st.metric(label=f"Cotação Atual {bandeira}", value=f"{cotacao:.2f} Kz")
-st.header(f"Total: {total_kwanza:,.2f} Kz")
-
-st.write("---")
-if st.button("🔄 ATUALIZAR CÂMBIO AGORA"):
-    st.rerun()
-
-st.caption("© 2024 | Criado por Emanuel Macosso no Samsung S21 🚀")
+# 3. Informações de Contato no Canto Inferior
+st.markdown(f"""
+    <div class="footer">
+        Desenvolvedor: Emanuel Macosso<br>
+        +244 935227288<br>
+        Endereço: Cabinda, Angola, 000
+    </div>
+    """, unsafe_allow_html=True)
