@@ -1,59 +1,51 @@
 import streamlit as st
-import requests
 
-# Configuração da página
+# 1. Configuração da Página
 st.set_page_config(page_title="Conversor PRO - Emanuel Macosso", layout="centered")
 
-# --- CABEÇALHO ---
+# 2. Cabeçalho com seu nome em destaque
 st.markdown("<h1 style='text-align: center; color: #FFD700;'>EMANUEL MACOSSO</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Tudo o que você precisa converter em um só lugar.</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Conversor de Moedas e Temperatura</p>", unsafe_allow_html=True)
 st.divider()
 
-# --- SEÇÃO 1: MOEDAS MUNDIAIS ---
+# 3. CONVERSOR DE MOEDAS (Valores Fixos - Fevereiro 2026)
 st.header("💱 Conversor de Moedas")
 
-def buscar_cambio():
-    try:
-        # API alternativa e estável
-        url = "https://open.er-api.com"
-        response = requests.get(url, timeout=15)
-        return response.json()
-    except:
-        return None
+# Definição das taxas fixas (Base: 1 Kwanza - AOA)
+# Valores aproximados baseados no câmbio de 22/02/2026
+taxas_fixas = {
+    "Dólar (USD)": 0.00108,   # 1 USD ≈ 928 Kz
+    "Euro (EUR)": 0.00102,    # 1 EUR ≈ 980 Kz
+    "Real (BRL)": 0.00560,    # 1 BRL ≈ 178 Kz
+    "Rand (ZAR)": 0.02100     # 1 ZAR ≈ 47 Kz
+}
 
-dados = buscar_cambio()
+col1, col2 = st.columns(2)
+with col1:
+    valor_aoa = st.number_input("Valor em Kwanza (AOA):", min_value=0.0, value=1000.0)
+with col2:
+    moeda_selecionada = st.selectbox("Converter para:", list(taxas_fixas.keys()))
 
-if dados:
-    rates = dados['rates']
-    lista_moedas = sorted(list(rates.keys()))
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        valor_kz = st.number_input("Valor em Kwanza (AOA):", min_value=0.0, value=1000.0)
-    with col2:
-        # Tenta colocar o Dólar (USD) como padrão se existir na lista
-        padrao = lista_moedas.index("USD") if "USD" in lista_moedas else 0
-        moeda_alvo = st.selectbox("Converter para:", lista_moedas, index=padrao)
-    
-    resultado = valor_kz * rates[moeda_alvo]
-    st.success(f"**Resultado:** {resultado:,.2f} {moeda_alvo}")
-    st.caption(f"Câmbio atualizado em: {dados['time_last_update_utc'][:16]}")
-else:
-    st.error("⚠️ Não foi possível carregar o câmbio. Verifique se o arquivo requirements.txt tem a palavra 'requests'.")
+# Cálculo simples sem internet
+taxa = taxas_fixas[moeda_selecionada]
+resultado_moeda = valor_aoa * taxa
+
+st.success(f"**Resultado:** {resultado_moeda:,.2f} {moeda_selecionada.split()[-1][1:4]}")
+st.info(f"Câmbio fixado em: 1 AOA = {taxa:.6f} {moeda_selecionada.split()[-1][1:4]}")
 
 st.divider()
 
-# --- SEÇÃO 2: TEMPERATURA ---
+# 4. CONVERSOR DE TEMPERATURA
 st.header("🌡️ Conversor de Temperatura")
 
 c1, c2 = st.columns(2)
 with c1:
     valor_t = st.number_input("Graus:", value=0.0)
-    unidade_de = st.selectbox("De:", ["Celsius", "Fahrenheit", "Kelvin"])
+    de_u = st.selectbox("De:", ["Celsius", "Fahrenheit", "Kelvin"])
 with c2:
-    unidade_para = st.selectbox("Para:", ["Celsius", "Fahrenheit", "Kelvin"])
+    para_u = st.selectbox("Para:", ["Celsius", "Fahrenheit", "Kelvin"])
 
-def converter_t(v, de, para):
+def calcular_temp(v, de, para):
     if de == para: return v
     # Converte para Celsius
     c = v if de == "Celsius" else (v - 32) * 5/9 if de == "Fahrenheit" else v - 273.15
@@ -62,9 +54,9 @@ def converter_t(v, de, para):
     if para == "Fahrenheit": return (c * 9/5) + 32
     return c + 273.15
 
-res_t = converter_t(valor_t, unidade_de, unidade_para)
-st.info(f"**Resultado:** {res_t:.2f} °{unidade_para}")
+res_t = calcular_temp(valor_t, de_u, para_u)
+st.metric("Resultado", f"{res_t:.2f} °{para_u}")
 
-# --- RODAPÉ ---
+# 5. Rodapé
 st.divider()
-st.caption("© 2024 Desenvolvido por Emanuel Macosso")
+st.caption("Desenvolvido por Emanuel Macosso | Cabinda, Angola")
